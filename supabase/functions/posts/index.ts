@@ -6,11 +6,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1"
 import { corsHeaders } from "../_shared/cors.ts";
 import type { Post } from "./types.ts";
 
-console.log("Hello from Posts Function!");
+// 상수 정의
+const TABLE_NAME = 'post';
 
 // .env 파일에 정의된 환경변수 이름에 맞게 수정
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+// service_role 키 사용
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 // Supabase 클라이언트 생성
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -27,10 +29,7 @@ Deno.serve(async (req) => {
     const resourcePath = pathSegments.slice(pathSegments.indexOf('posts') + 1);
     const id = resourcePath.length > 0 ? resourcePath[0] : null;
 
-    console.log('Path segments:', pathSegments);
-    console.log('Resource path:', resourcePath);
-    console.log('ID:', id);
-    console.log('Method:', req.method);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${url.pathname}${id ? ` (ID: ${id})` : ''}`);
 
     // 인증 체크 (선택적)
     // const authHeader = req.headers.get('Authorization');
@@ -70,7 +69,7 @@ Deno.serve(async (req) => {
         );
     }
   } catch (error) {
-    console.error("Error handling request:", error);
+    console.error(`[${new Date().toISOString()}] Error:`, error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { 
@@ -84,7 +83,7 @@ Deno.serve(async (req) => {
 async function handleGetPosts(): Promise<Response> {
   try {
     const { data, error } = await supabase
-      .from('post')
+      .from(TABLE_NAME)
       .select('*')
       .order('created_at', { ascending: false });
     
@@ -95,7 +94,7 @@ async function handleGetPosts(): Promise<Response> {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in handleGetPosts:", error);
+    console.error(`[${new Date().toISOString()}] Error in GET /posts:`, error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { 
@@ -108,8 +107,9 @@ async function handleGetPosts(): Promise<Response> {
 
 async function handleSearchPosts(query: string): Promise<Response> {
   try {
+    console.log(`[${new Date().toISOString()}] Searching posts with query: ${query}`);
     const { data, error } = await supabase
-      .from('post')
+      .from(TABLE_NAME)
       .select('*')
       .ilike('title', `%${query}%`)
       .order('created_at', { ascending: false });
@@ -121,7 +121,7 @@ async function handleSearchPosts(query: string): Promise<Response> {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in handleSearchPosts:", error);
+    console.error(`[${new Date().toISOString()}] Error in GET /posts?q=${query}:`, error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { 
@@ -135,7 +135,7 @@ async function handleSearchPosts(query: string): Promise<Response> {
 async function handleGetPost(id: string): Promise<Response> {
   try {
     const { data, error } = await supabase
-      .from('post')
+      .from(TABLE_NAME)
       .select('*')
       .eq('id', id)
       .single();
@@ -147,7 +147,7 @@ async function handleGetPost(id: string): Promise<Response> {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in handleGetPost:", error);
+    console.error(`[${new Date().toISOString()}] Error in GET /posts/${id}:`, error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { 
@@ -161,8 +161,9 @@ async function handleGetPost(id: string): Promise<Response> {
 async function handleCreatePost(req: Request): Promise<Response> {
   try {
     const post = await req.json();
+    console.log(`[${new Date().toISOString()}] Creating new post:`, post);
     const { data, error } = await supabase
-      .from('post')
+      .from(TABLE_NAME)
       .insert([post])
       .select();
     
@@ -176,7 +177,7 @@ async function handleCreatePost(req: Request): Promise<Response> {
       }
     );
   } catch (error) {
-    console.error("Error in handleCreatePost:", error);
+    console.error(`[${new Date().toISOString()}] Error in POST /posts:`, error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { 
@@ -190,8 +191,9 @@ async function handleCreatePost(req: Request): Promise<Response> {
 async function handleUpdatePost(id: string, req: Request): Promise<Response> {
   try {
     const updates = await req.json();
+    console.log(`[${new Date().toISOString()}] Updating post ${id}:`, updates);
     const { data, error } = await supabase
-      .from('post')
+      .from(TABLE_NAME)
       .update(updates)
       .eq('id', id)
       .select();
@@ -203,7 +205,7 @@ async function handleUpdatePost(id: string, req: Request): Promise<Response> {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in handleUpdatePost:", error);
+    console.error(`[${new Date().toISOString()}] Error in PUT /posts/${id}:`, error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { 
@@ -216,8 +218,9 @@ async function handleUpdatePost(id: string, req: Request): Promise<Response> {
 
 async function handleDeletePost(id: string): Promise<Response> {
   try {
+    console.log(`[${new Date().toISOString()}] Deleting post ${id}`);
     const { error } = await supabase
-      .from('post')
+      .from(TABLE_NAME)
       .delete()
       .eq('id', id);
     
@@ -228,7 +231,7 @@ async function handleDeletePost(id: string): Promise<Response> {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in handleDeletePost:", error);
+    console.error(`[${new Date().toISOString()}] Error in DELETE /posts/${id}:`, error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { 
