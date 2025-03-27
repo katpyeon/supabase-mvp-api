@@ -1,0 +1,27 @@
+# .env 파일 제외
+.env
+.env.local
+.env.*.local
+
+# 로그 파일
+*.log
+
+# 디렉토리
+node_modules/
+dist/
+.output/
+.nuxt/
+.cache/
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# IDE 설정
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw? 

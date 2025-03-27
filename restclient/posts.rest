@@ -1,0 +1,36 @@
+@baseUrl = http://127.0.0.1:54321
+
+### 포스트 목록 조회
+GET {{baseUrl}}/functions/v1/posts
+Content-Type: application/json
+
+### 특정 포스트 조회
+GET {{baseUrl}}/functions/v1/posts/1
+Content-Type: application/json
+
+### 포스트 검색
+GET {{baseUrl}}/functions/v1/posts?q=검색어
+Content-Type: application/json
+
+### 새 포스트 생성
+POST {{baseUrl}}/functions/v1/posts
+Content-Type: application/json
+
+{
+    "title": "레스트 흐르는밤",
+    "author": "katpyeon",
+    "content": "이것은 Rest API로 만들어진 포스트입니다."
+}
+
+### 포스트 수정
+PUT {{baseUrl}}/functions/v1/posts/1
+Content-Type: application/json
+
+{
+    "title": "수정된 제목",
+    "content": "수정된 내용입니다."
+}
+
+### 포스트 삭제
+DELETE {{baseUrl}}/functions/v1/posts/1
+Content-Type: application/json
